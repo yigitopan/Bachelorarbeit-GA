@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.6.0/Chart.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.3/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/google-palette/1.1.0/palette.js"></script>
+    <title>Document</title>
+
+</head>
+<style>
+   canvas {
+      max-height: 80vh;
+   }
+</style>
+<body>
+    <canvas id="canvas"></canvas>
+    <div>Gesamte Fitness: <span id="fitness"></span></div>
+    <div>Gesamte Kalorien: <span id="totalKa"></span></div>
+    <div>Gesamtes Protein: <span id="totalP"></span></div>
+    <div>Gesamtes Fett: <span id="totalF"></span></div>
+    <div>Gesamtes Kohlenhydrat: <span id="totalKo"></span></div>
+</body>
+
+<script>
+       var pal = palette('cb-BuGn', 8 ); 
+let fetched = [];
+let fetchedPlan;
+let finalGerichte = [];
+let finalAmounts = [];
+
+var requestOptions = {
+  method: 'GET',
+  redirect: 'follow'
+};
+
+fetch("http://127.0.0.1:5001/data", requestOptions)
+  .then(response => response.text())
+  .then(result => {
+    result = JSON.parse(result)
+    fetched = result.data[0];
+    console.log(fetched)
+    console.log(result.data[2])
+    fetchedAv = result.data[0]
+    fetchedPlan = result.data[0]
+    start(fetched)
+    show();
+    })
+  .catch(error => console.log('error', error));
+
+ function show() {
+      let gesamtProtein = 0;
+      let gesamtFett = 0;
+      let gesamtKohlenhydrat = 0;
+            for (let i = 0; i < fetchedPlan.gerichte.length; i++) {
+                const gericht = fetchedPlan.gerichte[i];
+                const menge = fetchedPlan.amounts[i];
+               
+                gesamtProtein += gericht.protein * menge;
+                gesamtFett += gericht.fett * menge;
+                gesamtKohlenhydrat += gericht.karb * menge;
+
+            }
+
+            document.getElementById("fitness").innerHTML = fetchedPlan.fitness;
+            document.getElementById("totalP").innerHTML = gesamtProtein;
+            document.getElementById("totalKo").innerHTML = gesamtKohlenhydrat;
+            document.getElementById("totalF").innerHTML = gesamtFett;
+            document.getElementById("totalKa").innerHTML = gesamtProtein*4 + gesamtKohlenhydrat*4 + gesamtFett*9;
+ }
+
+function start(fetched){
+    var labels = [];
+    console.log(fetched.length)
+
+    for (let index = 0; index < fetched.length; index++) {
+        labels.push(`${index!=fetched.length-1 ? (fetched.length-index).toString()+"thöchste" : "Höchste"}`)
+    }
+
+    var data  = fetched.filter(function(value, index, Arr) {
+    return index % 1 == 0;
+});
+
+  Chart.defaults.global.elements.line.fill    = false;
+  Chart.defaults.global.elements.line.tension = 0;
+  Chart.defaults.global.animation             = 0;
+var ctx = canvas.getContext('2d');
+var config = 
+      {
+          type: 'line',
+          data: {
+                  labels:   labels,
+                  datasets: [
+                    {
+                      label:           "1st Line Chart",
+                      data:            fetched,
+                      borderColor:     '#' + pal[3],
+                      backgroundColor: '#' + pal[3],
+                      pointRadius:     8,
+                      pointStyle:      'star'
+                    }
+                  ]
+                },
+          options: {
+            responsive: true,
+            legend: {
+              position: 'bottom',
+              labels: {
+                fontSize: 12,
+                boxWidth: 12,
+                usePointStyle: true,
+              }
+            },
+            title: {
+              display: true,
+              text: 'Multi Line Chart'
+            },
+            scales: {
+              yAxes: [
+                {
+                  ticks: {
+                    min: 0
+                  },
+                  scaleLabel: {
+                    display: true,
+                    labelString: "Values"
+                  }
+                }
+              ],
+              xAxes: [
+                {
+                  scaleLabel: {
+                    display: true,
+                    labelString: "Date"
+                  }
+                }
+              ],
+             }
+          }
+      }
+
+var chart = new Chart(ctx, config);
+}
+
+
+
+</script>
+</html>
+
+
+
