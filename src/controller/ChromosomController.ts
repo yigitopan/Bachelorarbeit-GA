@@ -84,10 +84,35 @@ export class ChromosomController {
         // Gesamte Kalorien für alle Zutaten
         const gesamtKalorien = kohlenhydratKalorien + proteinKalorien + fettKalorien;
       
+        /* 
+        
+        //Fitness-Funktion zur Protein-Maximierung
+
         let gesamtFitness = proteinKalorien/(this.taeglicheKalorien);
 
         if(gesamtKalorien>this.taeglicheKalorien || gesamtProtein == 0 || gesamtFitness > 1) {
             gesamtFitness = 0;
+        }
+
+        */
+
+        //Ziele, die bei der Studie überrichtet wurden - Basiert auf LBM
+        const zielProtein = this.LBM * 2.5
+        const zielFett = this.LBM * 0.75;
+      
+        // SSE
+        const proteinUnterschied = gesamtProtein - zielProtein;
+        const fettUnterschied = gesamtFett - zielFett;
+        const kalorienUnterschied = gesamtKalorien - this.taeglicheKalorien;
+      
+        const proteinFitness = proteinUnterschied ** 2;
+        const fettFitness = fettUnterschied ** 2;
+        const kalorienFitness = kalorienUnterschied ** 2;
+    
+        let gesamtFitness = (proteinFitness + fettFitness + kalorienFitness);
+
+        if(gesamtKalorien>this.taeglicheKalorien) {
+            gesamtFitness = gesamtFitness + 5000;
         }
         
         chromosom.setFitness(gesamtFitness);
